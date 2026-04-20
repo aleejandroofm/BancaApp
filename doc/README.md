@@ -58,3 +58,12 @@ Editar el archivo `config.properties`:
 | **Rol**       | **Nombre**                   | **Encargo**  |
 | ------------- | ---------------------------- | ------------ |
 | Product Owner | Alejandro Ferrándiz Martínez | **Backend**  |
+| Co-Owner      | Pablo Ariel Mathieu Ruiz     | **Frontend** |
+
+
+
+
+
+
+
+

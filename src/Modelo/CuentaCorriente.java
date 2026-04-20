@@ -40,17 +40,16 @@ public class CuentaCorriente extends Cuenta {
 	@Override
 	public boolean ingresarDinero(double importe) {
 		// TODO Auto-generated method stub
+		return false;
 		
 	}
 
 	@Override
 	public boolean retirarDinero(double importe) {
-		if (importe > 0 && (saldo + limiteDescubierto) >= importe) {
-			saldo = saldo - importe;
-			return true;
+		return false;
+		
 		}
 		
-	}
 
 	@Override
 	public boolean realizarTransferencia(double importe) {

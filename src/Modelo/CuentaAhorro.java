@@ -28,22 +28,23 @@ public class CuentaAhorro extends Cuenta {
 		this.tasaInteresAhorro = tasaInteresAhorro;
 	}
 
+
 	@Override
-	public boolean ingresarDinero() {
-		
-		
+	public boolean ingresarDinero(double importe) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean realizarTransferencia(double importe) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	@Override
 	public boolean retirarDinero(double importe) {
-		
-		
-	}
-
-	@Override
-	public boolean realizarTransferencia() {
 		// TODO Auto-generated method stub
-		
+		return false;
 	}
 	
 	
