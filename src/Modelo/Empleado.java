@@ -6,17 +6,17 @@ public class Empleado extends Usuario {
     private String tipoPuesto;
     private String idEmpleado;
     
-    public Empleado(String nombre, String telefono, String pais, int id, String dni, String rol, String email, String direccion, String password, String passwordHash, double salario, String tipoPuesto, String idEmpleado, boolean autenticado) {
-        super(nombre, telefono, pais, id, dni, rol, email, direccion, password, passwordHash, autenticado);
+    public Empleado() {
+    	super();
+    }
+    
+    public Empleado(String nombre, String telefono, String pais, int id, String dni, String rol, String email, String direccion, String password, String passwordHash, double salario, String tipoPuesto, String idEmpleado) {
+        super(nombre, telefono, pais, id, dni, rol, email, direccion, password, passwordHash);
         this.salario = salario;
         this.tipoPuesto = tipoPuesto;
         this.idEmpleado = idEmpleado;
     }
     
-    public void verificarIdentidad() {
-    	// Lógica
-    }
-
 	public double getSalario() {
 		return salario;
 	}
@@ -40,7 +40,4 @@ public class Empleado extends Usuario {
 	public void setIdEmpleado(String idEmpleado) {
 		this.idEmpleado = idEmpleado;
 	}
-    
-    
-
 }

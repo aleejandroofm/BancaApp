@@ -1,17 +1,22 @@
 package Modelo;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public abstract class Cuenta {
+public class Cuenta implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
 	private String titular;
     private String numeroCuenta;
     private Double saldo;
     private Double interes;
     private Date fechaRegistro;
     private boolean estadoCuenta;
+    
+    public Cuenta() {
+    	
+    }
 
-    // 2. Constructor
     public Cuenta(String titular, String numeroCuenta, Double saldo, Double interes, Date fechaRegistro, boolean estadoCuenta) {
         this.titular = titular;
         this.numeroCuenta = numeroCuenta;
@@ -68,12 +73,7 @@ public abstract class Cuenta {
 	public void setEstadoCuenta(boolean estadoCuenta) {
 		this.estadoCuenta = estadoCuenta;
 	}
-    
-	public abstract boolean ingresarDinero(double importe);
 
-    public abstract boolean retirarDinero(double importe);
-
-    public abstract boolean realizarTransferencia(double importe);
 
 	
 

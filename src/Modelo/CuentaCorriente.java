@@ -4,6 +4,7 @@ import java.util.Date;
 
 public class CuentaCorriente extends Cuenta {
 	
+	private static final long serialVersionUID = 1L;
 	private double limiteDescubierto;
     private double comisionMantenimiento;
     
@@ -37,24 +38,6 @@ public class CuentaCorriente extends Cuenta {
 		this.comisionMantenimiento = comisionMantenimiento;
 	}
 
-	@Override
-	public boolean ingresarDinero(double importe) {
-		// TODO Auto-generated method stub
-		return false;
-		
-	}
-
-	@Override
-	public boolean retirarDinero(double importe) {
-		return false;
-		
-		}
-		
-
-	@Override
-	public boolean realizarTransferencia(double importe) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
 
 }

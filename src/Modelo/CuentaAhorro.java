@@ -4,6 +4,8 @@ import java.util.Date;
 
 public class CuentaAhorro extends Cuenta {
 	
+	
+	private static final long serialVersionUID = 1L;
 	private double tasaInteresAhorro;
 	
 	public CuentaAhorro(String titular, String numeroCuenta, Double saldo, Double interes, Date fechaRegistro, boolean estadoCuenta, double tasaInteresAhorro) {
@@ -26,25 +28,6 @@ public class CuentaAhorro extends Cuenta {
 
 	public void setTasaInteresAhorro(double tasaInteresAhorro) {
 		this.tasaInteresAhorro = tasaInteresAhorro;
-	}
-
-
-	@Override
-	public boolean ingresarDinero(double importe) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean realizarTransferencia(double importe) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean retirarDinero(double importe) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 	
 	

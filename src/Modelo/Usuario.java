@@ -12,14 +12,17 @@ public abstract class Usuario implements Autenticable {
     private String direccion;
     private String password;
     private String passwordHash;
+    private Cuenta cuenta;
     private boolean autenticado = false;
 
     
     public Usuario() {
     	
+    	this.setCuenta(new Cuenta());
+    	
     }
 
-    public Usuario(String nombre, String telefono, String pais, int id, String dni, String rol, String email, String direccion, String password, String passwordHash, boolean autenticado) {
+    public Usuario(String nombre, String telefono, String pais, int id, String dni, String rol, String email, String direccion, String password, String passwordHash) {
         this.nombre = nombre;
         this.telefono = telefono;
         this.pais = pais;
@@ -30,7 +33,6 @@ public abstract class Usuario implements Autenticable {
         this.direccion = direccion;
         this.password = password;
         this.passwordHash = passwordHash;
-        this.autenticado = autenticado;
     }
 
     
@@ -113,6 +115,14 @@ public abstract class Usuario implements Autenticable {
 	public void setPasswordHash(String passwordHash) {
 		this.passwordHash = passwordHash;
 	}
+	
+	public Cuenta getCuenta() {
+		return cuenta;
+	}
+
+	public void setCuenta(Cuenta cuenta) {
+		this.cuenta = cuenta;
+	}
 
 	public boolean isAutenticado() {
 		return autenticado;
@@ -125,11 +135,11 @@ public abstract class Usuario implements Autenticable {
 	public boolean login(String credenciales) {
 		if (credenciales != null && credenciales.equals(password)) {
 			this.autenticado = true;
+			return true;
 		} else {
 			this.autenticado = false;
 			return false;
 		}
-		return true;
     }
 	
 
@@ -143,5 +153,7 @@ public abstract class Usuario implements Autenticable {
     	return false;
        
     }
+
+	
 
 }
