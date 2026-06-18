@@ -7,7 +7,7 @@ public abstract class Usuario implements Autenticable {
     private String pais;
     private int id;
     private String dni;
-    private String rol;
+    private Rol rol;
     private String email;
     private String direccion;
     private String password;
@@ -22,7 +22,7 @@ public abstract class Usuario implements Autenticable {
     	
     }
 
-    public Usuario(String nombre, String telefono, String pais, int id, String dni, String rol, String email, String direccion, String password, String passwordHash) {
+    public Usuario(String nombre, String telefono, String pais, int id, String dni, Rol rol, String email, String direccion, String password, String passwordHash) {
         this.nombre = nombre;
         this.telefono = telefono;
         this.pais = pais;
@@ -76,11 +76,11 @@ public abstract class Usuario implements Autenticable {
 		this.dni = dni;
 	}
 
-	public String getRol() {
+	public Rol getRol() {
 		return rol;
 	}
 
-	public void setRol(String rol) {
+	public void setRol(Rol rol) {
 		this.rol = rol;
 	}
 

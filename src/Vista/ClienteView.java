@@ -4,30 +4,31 @@ import java.util.List;
 import java.util.Scanner;
 import Controlador.Controlador;
 import Util.ErrorHandler;
+import Excepciones.Cuenta.CuentaInactivaException;
+import Excepciones.Cuenta.CuentaNoEncontradaException;
+import Excepciones.Operacion.DatoInvalidoException;
+import Excepciones.Operacion.LimiteExcedidoException;
+import Excepciones.Operacion.SaldoInsuficienteException;
+import Excepciones.Operacion.DestinatarioInvalidoException;
+import Excepciones.Sistema.PersistenciaException;
 
 /**
  * Clase que gestiona el menú interactivo para los clientes (capa Vista del MVC).
- * Ofrece opciones para consultar saldo, ingresar, retirar, transferir dinero 
- * y revisar el historial de movimientos directamente por la consola.
+ * Ofrece opciones para operar con cuentas e historial directamente por consola.
+ * @author Alejandro Ferrándiz Martínez
  */
 public class ClienteView implements ErrorHandler.ErrorDisplay {
     
     private Scanner sc;
-    
-    /**
-     * Constructor por defecto. Inicializa el lector de teclado (Scanner)
-     * para capturar las opciones y los importes del cliente.
-     */
+   
     public ClienteView() {
         this.sc = new Scanner(System.in);
     }
     
     /**
      * Despliega el bucle principal con el menú de opciones del cliente.
-     * Captura la opción elegida, procesa los datos necesarios para cada operación
-     * (como importes o IBANs) y se los manda al controlador para que ejecute la lógica.
-     * @param ct Instancia del Controlador principal para comunicar la vista con el servicio.
-     * @param nombreCliente El nombre del cliente logueado para personalizar los mensajes.
+     * @param ct Instancia del Controlador principal.
+     * @param nombreCliente El nombre del cliente logueado.
      */
     public void mostrarMenuCliente(Controlador ct, String nombreCliente) {
         
@@ -39,7 +40,8 @@ public class ClienteView implements ErrorHandler.ErrorDisplay {
             System.out.println("3. Retirar Dinero.");
             System.out.println("4. Realizar Transferencia.");
             System.out.println("5. Ver Movimientos.");
-            System.out.println("6. Cerrar Sesión.");
+            System.out.println("6. Realizar Bizum.");
+            System.out.println("7. Cerrar Sesión.");
             System.out.print("Seleccione una opción: ");
             
             try {
@@ -47,21 +49,24 @@ public class ClienteView implements ErrorHandler.ErrorDisplay {
                 
                 switch(opcion) {
                     case 1 -> {
+                        System.out.println("\n===== CONSULTAR SALDO =====");
                         try {
-                        	
-                            System.out.println("\n===== CONSULTAR SALDO =====");
                             double saldo = ct.consultarSaldo();
                             mostrarSaldo(saldo);
-                        } catch (Exception e) {
-                            ErrorHandler.gestionar(e, this);
+                            
+                        } catch (CuentaNoEncontradaException e) {
+                            mostrarError("ERR-CUENTA-404", e.getMessage());
+                            
+                        } catch (PersistenciaException e) {
+                            mostrarError("ERR-DB-500", "Error de comunicación con el banco.");
                         }
                     }
                     
                     case 2 -> {
                         System.out.println("\n===== INGRESAR DINERO =====");
+                        System.out.print("Introduce el importe a ingresar (€): ");    
                         try {
-                        	
-                            System.out.print("Introduce el importe a ingresar (€): ");
+                            
                             double importe = Double.parseDouble(sc.nextLine());
                             
                             ct.ingresar(importe);
@@ -69,54 +74,88 @@ public class ClienteView implements ErrorHandler.ErrorDisplay {
                             
                         } catch (NumberFormatException e) {
                             System.out.println("Error: El importe introducido no tiene un formato válido.");
-                        } catch (Exception e) {
-                            ErrorHandler.gestionar(e, this);
+                            
+                        } catch (CuentaNoEncontradaException e) {
+                            mostrarError("ERR-CUENTA-404", e.getMessage());
+                            
+                        } catch (DatoInvalidoException e) {
+                            mostrarError("ERR-VAL-400", e.getMessage());
+                            
+                        } catch (CuentaInactivaException e) {
+                            mostrarError("ERR-BLOQUEO-403", e.getMessage());
+                            
+                        } catch (PersistenciaException e) {
+                            mostrarError("ERR-DB-500", "No se pudo consolidar el ingreso.");
                         }
                     }
                     
                     case 3 -> {
                         System.out.println("\n===== RETIRAR DINERO =====");
+                        System.out.print("Introduce el importe a retirar (€): ");
                         try {
-                        	
-                            System.out.print("Introduce el importe a retirar (€): ");
+                            
                             double importe = Double.parseDouble(sc.nextLine());
                             
-                            ct.retirar(importe);
+                            ct.retirar(importe); 
                             System.out.println("¡Se ha retirado el importe con éxito!");
                             
                         } catch (NumberFormatException e) {
-                            System.out.println("Error: El importe introducido no tiene un formato válido.");
-                        } catch (Exception e) {
-                            ErrorHandler.gestionar(e, this);
+                            mostrarError("ERR-FORMATO-400", "El importe debe ser un número decimal válido.");
+                            
+                        } catch (SaldoInsuficienteException e) {
+                            mostrarError("ERR-SALDO-400", e.getMessage());
+                            
+                        } catch (CuentaNoEncontradaException e) {
+                            mostrarError("ERR-CUENTA-404", e.getMessage());
+                            
+                        } catch (CuentaInactivaException e) {
+                            mostrarError("ERR-ESTADO-403", e.getMessage());
+                            
+                        } catch (PersistenciaException e) {
+                            mostrarError("ERR-DB-500", e.getMessage());
                         }
                     }
                     
                     case 4 -> {
                         System.out.println("\n===== REALIZAR TRANSFERENCIA =====");
-                        System.out.print("Introduce el numero de cuenta destino (IBAN): ");
+                        System.out.print("Introduce el número de cuenta destino (IBAN): ");
                         String cuentaDestino = sc.nextLine();
-                        
                         System.out.print("Introduce el importe a transferir (€): ");
+                        
                         try {
-                        	
                             double importe = Double.parseDouble(sc.nextLine());
-   
                             ct.realizarTransferencia(cuentaDestino, importe);
-                            System.out.println("¡Transferencia realizada con exito!");
+                            System.out.println("¡Transferencia realizada con éxito!");
                             
                         } catch (NumberFormatException e) {
-                            System.out.println("Error: El importe introducido no tiene un formato valido.");
-                        } catch (Exception e) {
-                            ErrorHandler.gestionar(e, this);
+                            System.out.println("Error: El importe debe ser un número decimal.");
+                            
+                        } catch (DestinatarioInvalidoException e) {
+                            mostrarError(e.getCodigoError(), e.getMessage());
+                            
+                        } catch (IllegalArgumentException e) {
+                            mostrarError("ERR-TR-MISMA-CUENTA", e.getMessage());
+                            
+                        } catch (CuentaNoEncontradaException e) {
+                            mostrarError("ERR-TR-404", e.getMessage());
+                            
+                        } catch (CuentaInactivaException e) {
+                            mostrarError("ERR-BLOQUEO-403", e.getMessage());
+                            
+                        } catch (DatoInvalidoException e) {
+                            mostrarError("ERR-TR-400", e.getMessage());
+                            
+                        } catch (PersistenciaException e) {
+                            mostrarError("ERR-TR-500", e.getMessage());
                         }
                     }
                     
                     case 5 -> {
                         System.out.println("\n========================================");
-                        System.out.println("       HISTORIAL DE MOVIMIENTOS         ");
+                        System.out.println("        HISTORIAL DE MOVIMIENTOS        ");
                         System.out.println("========================================");
                         try {
-                        	
+                            
                             List<String> historial = ct.verMovimientos();
                             
                             if (historial.isEmpty()) {
@@ -126,26 +165,63 @@ public class ClienteView implements ErrorHandler.ErrorDisplay {
                                     System.out.println(movimiento);
                                 }
                             }
-                        } catch (Exception e) {
-                            ErrorHandler.gestionar(e, this); 
+                        } catch (PersistenciaException e) {
+                            mostrarError("ERR-DB-500", "No se pudo recuperar el historial de movimientos.");
                         }
                     }
                     
+
                     case 6 -> {
-                        System.out.println("Cerrando sesion...");
+                        System.out.println("\n===== ENVIAR BIZUM =====");
+                        System.out.print("Introduce el número de teléfono destino: ");
+                        String telefonoDestino = sc.nextLine();
+                        System.out.print("Introduce el importe a enviar (€): ");
+                        
+                        try {
+                            double importe = Double.parseDouble(sc.nextLine());
+                            
+                            ct.enviarBizum(telefonoDestino, importe);
+                            System.out.println("¡Bizum enviado con éxito!");
+                            
+                        } catch (NumberFormatException e) {
+                            System.out.println("Error: El importe introducido debe ser un número válido.");
+                            
+                        } catch (DestinatarioInvalidoException e) {
+                            mostrarError(e.getCodigoError(), e.getMessage());
+                            
+                        } catch (LimiteExcedidoException e) {
+                            mostrarError("ERR-BIZUM-LIMIT", e.getMessage());
+                            
+                        } catch (SaldoInsuficienteException e) {
+                            mostrarError("ERR-SALDO-400", e.getMessage());
+                            
+                        } catch (CuentaNoEncontradaException e) {
+                            mostrarError("ERR-BIZUM-404", e.getMessage());
+                            
+                        } catch (CuentaInactivaException e) {
+                            mostrarError("ERR-BLOQUEO-403", e.getMessage());
+                            
+                        } catch (DatoInvalidoException e) {
+                            mostrarError("ERR-DATOS-400", e.getMessage());
+                            
+                        } catch (PersistenciaException e) {
+                            mostrarError("ERR-DB-500", e.getMessage());
+                        }
                     }
                     
-                    default -> System.out.println("Opcion no valida. Intentelo de nuevo.");
+                    case 7 -> System.out.println("Cerrando sesión de cliente...");
+                    
+                    default -> System.out.println("Opción no válida. Inténtelo de nuevo.");
                 }
             } catch (NumberFormatException e) {
-                System.out.println("Error: Por favor, introduzca un numero entero valido.");
+                System.out.println("Error: Por favor, introduzca un número entero válido.");
             }
-        } while (opcion != 6);
+        } while (opcion != 7);
     }
     
     /**
-     * Pinta en consola el saldo actual formateado de forma limpia y clara para el usuario.
-     * @param saldo El saldo total disponible en la cuenta del cliente.
+     * Muestra el saldo en consola
+     * @param saldo Saldo disponible.
      */
     public void mostrarSaldo(double saldo) {
         System.out.println("------------------------------------");
@@ -153,16 +229,9 @@ public class ClienteView implements ErrorHandler.ErrorDisplay {
         System.out.println("------------------------------------");
     }
     
-    /**
-     * Método heredado de la interfaz ErrorDisplay.
-     * Captura las excepciones de la aplicación y muestra un bloque visual de error
-     * para avisar al cliente de fallos como saldos insuficientes o cuentas inexistentes.
-     * @param codigo Código que identifica el tipo de excepción lanzada.
-     * @param mensaje Texto explicativo detallando qué ha fallado.
-     */
     @Override
     public void mostrarError(String codigo, String mensaje) {
-        System.out.println("==================================================");
+        System.out.println("\n==================================================");
         System.out.println(" ERROR EN OPERACIÓN CLIENTE [" + codigo + "]");
         System.out.println(" -> " + mensaje);
         System.out.println("==================================================\n");

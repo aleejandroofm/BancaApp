@@ -1,12 +1,12 @@
 package Excepciones.Autenticacion;
 
-public class UsuarioYaExisteException extends Exception {
+import Excepciones.BancaAppException;
 
-	
-	private static final long serialVersionUID = 1L;
-	
-	public UsuarioYaExisteException(String mensaje) {
-		super(mensaje);
-	}
+public class UsuarioYaExisteException extends BancaAppException {
+    private static final long serialVersionUID = 1L;
 
+    public UsuarioYaExisteException(String mensaje) {
+        // Le pasamos el mensaje y el código de error oficial a la clase madre
+        super(mensaje, "ERR_USUARIO_DUPLICADO");
+    }
 }

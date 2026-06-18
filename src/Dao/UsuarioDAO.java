@@ -7,20 +7,35 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import Modelo.Usuario;
 import Conexion.ConexionDB;
+import Excepciones.Autenticacion.UsuarioBloqueadoException;
 import Excepciones.Sistema.PersistenciaException;
-
 import java.util.ArrayList;
 import java.util.List;
 import Modelo.Cliente;
 import Modelo.Empleado;
+import Modelo.Rol;
 import Modelo.Administrador;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+/**
+ * DAO encargado de gestionar las operaciones de persistencia relacionadas
+ * con los usuarios del sistema.
+ * Permite realizar búsquedas, altas, modificaciones, eliminaciones,
+ * autenticación y consultas auxiliares sobre la información almacenada
+ * en la base de datos.
+ */
 public class UsuarioDAO {
     
     private static final Logger logger = Logger.getLogger(UsuarioDAO.class.getName());
     
+    /**
+     * Busca un usuario a partir de su identificador interno.
+     *
+     * @param idInterno identificador único del usuario en la base de datos.
+     * @return el usuario encontrado o {@code null} si no existe.
+     * @throws PersistenciaException si ocurre un error durante la consulta.
+     */
     public Usuario buscarPorID(int idInterno) {
         String sql = "SELECT * FROM usuario WHERE id_interno = ?";
         Usuario user = null;
@@ -43,7 +58,13 @@ public class UsuarioDAO {
         return user;
     }
     
-    	
+    /**
+     * Convierte una fila del ResultSet en una instancia de
+     * Usuario o de una de sus clases derivadas.
+     * @param rs conjunto de resultados posicionado sobre una fila válida.
+     * @return objeto usuario mapeado con los datos obtenidos.
+     * @throws Exception si se produce algún error durante el mapeo.
+     */
     private Usuario mapearUsuario(ResultSet rs) throws Exception {
         Usuario user = null;
         String rol = rs.getString("rol");
@@ -71,7 +92,7 @@ public class UsuarioDAO {
         if (user != null) {
             user.setNombre(nombre);
             user.setDni(dni);
-            user.setRol(rol);
+            user.setRol(Rol.valueOf(rs.getString("rol").toUpperCase().trim()));
             user.setId(idInterno);
             user.setDireccion(direccion);
             user.setTelefono(telefono);
@@ -85,7 +106,31 @@ public class UsuarioDAO {
         return user;
     }
     
+    /**
+     * Busca el ID más alto de la tabla de usuarios para poder generar el siguiente de forma consecutiva.
+     */
+    public int obtenerUltimoIdInterno() throws PersistenciaException {
+        String sql = "SELECT MAX(id_interno) FROM usuario";
+        try (Connection con = ConexionDB.conectar(); 
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            if (rs.next()) {
+                int maxId = rs.getInt(1);
+                // Si la tabla estuviera vacía, empezamos en el 100, si no, devolvemos el más alto
+                return (maxId == 0) ? 100 : maxId; 
+            }
+        } catch (SQLException e) {
+            throw new PersistenciaException("Error al calcular el nuevo ID de usuario: " + e.getMessage());
+        }
+        return 100;
+    }
     
+    /**
+     * Obtiene todos los usuarios registrados en la base de datos.
+     * @return lista con todos los usuarios almacenados.
+     * @throws PersistenciaException si ocurre un error durante la consulta.
+     */
     public List<Usuario> listarTodos() {
         List<Usuario> lista = new ArrayList<>();
         String sql = "SELECT * FROM usuario";
@@ -108,20 +153,54 @@ public class UsuarioDAO {
         
         return lista; 
     }
-
-    public boolean guardar(Usuario user) {
-        String sql = "INSERT INTO usuario (nombre, dni, rol, direccion, telefono, password, pais, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    
+    /**
+     * Busca el número de cuenta asociado a un DNI.
+     *
+     * @param dniTitular DNI del titular de la cuenta.
+     * @return número de cuenta asociado o {@code null} si no existe.
+     * @throws PersistenciaException si ocurre un error de acceso a datos.
+     */
+    public String buscarNumeroCuentaPorDni(String dniTitular) {
+        String sql = "SELECT numeroCuenta FROM cuenta WHERE dni_titular = ?";
         try (Connection con = ConexionDB.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
             
-            ps.setString(1, user.getNombre());
-            ps.setString(2, user.getDni());
-            ps.setString(3, user.getRol());
-            ps.setString(4, user.getDireccion());
-            ps.setString(5, user.getTelefono());
-            ps.setString(6, user.getPassword());
-            ps.setString(7, user.getPais());
-            ps.setString(8, user.getEmail());
+            ps.setString(1, dniTitular);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("numeroCuenta");
+                }
+            }
+        } catch (SQLException e) {
+            throw new PersistenciaException("Error al buscar la cuenta asociada al DNI.", e);
+        }
+        return null;
+    }
+
+    /**
+     * Inserta un nuevo usuario en la base de datos.
+     *
+     * @param user usuario que se desea almacenar.
+     * @return true si la operación se realizó correctamente;
+     *         false en caso contrario.
+     * @throws PersistenciaException si ocurre un error durante la inserción.
+     */
+    public boolean guardar(Usuario user) {
+        String sql = "INSERT INTO usuario (id_interno, nombre, dni, rol, direccion, telefono, password, passwordHash, pais, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection con = ConexionDB.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, user.getId());
+            ps.setString(2, user.getNombre());
+            ps.setString(3, user.getDni());
+            ps.setString(4, user.getRol().name());
+            ps.setString(5, user.getDireccion());
+            ps.setString(6, user.getTelefono());
+            ps.setString(7, user.getPassword());
+            ps.setString(8, user.getPasswordHash());
+            ps.setString(9, user.getPais());
+            ps.setString(10, user.getEmail());
             
             return ps.executeUpdate() > 0;
             
@@ -131,6 +210,12 @@ public class UsuarioDAO {
         }
     }
     
+    /**
+     * Actualiza los datos modificables de un usuario existente.
+     * @param user usuario con la información actualizada.
+     * @return true si se actualizó al menos un registro / false en caso contrario.
+     * @throws PersistenciaException si ocurre un error durante la actualización.
+     */
     public boolean actualizar(Usuario user) {
         String sql = "UPDATE usuario SET nombre = ?, direccion = ?, telefono = ?, pais = ? WHERE id_interno = ?";
         try (Connection con = ConexionDB.conectar();
@@ -150,22 +235,39 @@ public class UsuarioDAO {
         }
     }
     
-    public boolean eliminar(int idUsuario) {
-        String sql = "DELETE FROM usuario WHERE id_interno = ?";
+    /**
+     * Elimina un usuario de la base de datos utilizando su DNI.
+     *
+     * @param dni DNI del usuario a eliminar.
+     * @return true si el usuario fue eliminado correctamente; false en caso contrario.
+     * @throws PersistenciaException si ocurre un error durante la eliminación.
+     */
+    public boolean eliminarUsuario(String dni) throws PersistenciaException {
+        String sql = "DELETE FROM usuario WHERE dni = ?";
         try (Connection con = ConexionDB.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
             
-            ps.setInt(1, idUsuario);
+            ps.setString(1, dni);
             
             return ps.executeUpdate() > 0;
             
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error en eliminar(): " + e.getMessage(), e);
+            logger.log(Level.SEVERE, "Error en eliminarPorDni(): " + e.getMessage(), e);
             throw new PersistenciaException("No se ha podido eliminar el registro del usuario por un error en el servidor.", e);
         }
     }
 
-    public Usuario login(String email, String password) {
+    /**
+     * Autentica un usuario mediante su correo electrónico y contraseña.
+     *
+     * @param email correo electrónico del usuario.
+     * @param password contraseña asociada al usuario.
+     * @return el usuario autenticado si las credenciales son válidas, null en caso contrario.
+     * @throws UsuarioBloqueadoException si el usuario está inactivo/bloqueado.
+     * @throws PersistenciaException si ocurre un error durante el proceso de autenticación.
+     */
+    public Usuario login(String email, String password) throws UsuarioBloqueadoException, PersistenciaException {
+    	
         String sql = "SELECT * FROM usuario WHERE email = ? AND password = ?";
         try (Connection con = ConexionDB.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -174,14 +276,23 @@ public class UsuarioDAO {
             
             try(ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    boolean activo = rs.getBoolean("activo");
+                    if (!activo) {
+                        throw new UsuarioBloqueadoException("Acceso denegado: Tu cuenta de usuario se encuentra desactivada por seguridad.");
+                    }
+                    
                     return mapearUsuario(rs);
                 } 
             }
+            
+        } catch (UsuarioBloqueadoException e) {
+            throw e;
             
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error durante el proceso de login en BD: " + e.getMessage(), e);
             throw new PersistenciaException("Error crítico en el sistema al procesar la autenticacion.", e);
         }
+        
         return null;        
     }
 }

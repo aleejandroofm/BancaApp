@@ -1,15 +1,22 @@
 package Modelo;
 
-import java.util.Date;
+import java.sql.Timestamp;
 
+/**
+ * Modelo que representa un registro de auditoría en el sistema bancario.
+ * Mapea directamente los campos de la tabla LogAuditoria de la base de datos.
+ * @author Alejandro Ferrándiz Martínez
+ */
 public class LogAuditoria {
-	private String idLog;
+    
+    private int idLog;
     private String accion;
-    private Date fechaAccion;
+    private Timestamp fechaAccion;
     private boolean resultado;
     private String idUsuario;
     
-    public LogAuditoria(String idLog, String accion, Date fechaAccion, boolean resultado, String idUsuario) {
+  
+    public LogAuditoria(int idLog, String accion, Timestamp fechaAccion, boolean resultado, String idUsuario) {
         this.idLog = idLog;
         this.accion = accion;
         this.fechaAccion = fechaAccion;
@@ -17,46 +24,54 @@ public class LogAuditoria {
         this.idUsuario = idUsuario;
     }
 
-	public String getIdLog() {
-		return idLog;
-	}
+    /**
+     * Constructor útil para registrar nuevas acciones administratas. 
+     * El idLog y la fechaAccion no se piden porque los genera automáticamente la BD.
+     */
+    public LogAuditoria(String accion, boolean resultado, String idUsuario) {
+        this.accion = accion;
+        this.resultado = resultado;
+        this.idUsuario = idUsuario;
+    }
 
-	public void setIdLog(String idLog) {
-		this.idLog = idLog;
-	}
+    // GETTERS Y SETTERS
+    public int getIdLog() {
+        return idLog;
+    }
 
-	public String getAccion() {
-		return accion;
-	}
+    public void setIdLog(int idLog) {
+        this.idLog = idLog;
+    }
 
-	public void setAccion(String accion) {
-		this.accion = accion;
-	}
+    public String getAccion() {
+        return accion;
+    }
 
-	public Date getFechaAccion() {
-		return fechaAccion;
-	}
+    public void setAccion(String accion) {
+        this.accion = accion;
+    }
 
-	public void setFechaAccion(Date fechaAccion) {
-		this.fechaAccion = fechaAccion;
-	}
+    public Timestamp getFechaAccion() {
+        return fechaAccion;
+    }
 
-	public boolean isResultado() {
-		return resultado;
-	}
+    public void setFechaAccion(Timestamp fechaAccion) {
+        this.fechaAccion = fechaAccion;
+    }
 
-	public void setResultado(boolean resultado) {
-		this.resultado = resultado;
-	}
+    public boolean isResultado() {
+        return resultado;
+    }
 
-	public String getIdUsuario() {
-		return idUsuario;
-	}
+    public void setResultado(boolean resultado) {
+        this.resultado = resultado;
+    }
 
-	public void setIdUsuario(String idUsuario) {
-		this.idUsuario = idUsuario;
-	}
-    
-    
+    public String getIdUsuario() {
+        return idUsuario;
+    }
 
+    public void setIdUsuario(String idUsuario) {
+        this.idUsuario = idUsuario;
+    }
 }

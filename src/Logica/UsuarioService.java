@@ -11,11 +11,12 @@ import Excepciones.Operacion.SaldoInsuficienteException;
 import Modelo.Efectivo;
 import Modelo.Usuario;
 import Modelo.Operacion;
+import Modelo.TipoOperacion;
 
 /**
- * Clase de servicio que gestiona la sesión de los usuarios y sus operaciones principales.
- * Se encarga de controlar el estado del usuario logueado en el sistema y de coordinar
- * los ingresos, retiradas e historial consultando a los diferentes DAOs.
+ * Servicio encargado de gestionar la lógica de negocio relacionada con los usuarios.
+ * Controla la sesión del usuario autenticado y coordina operaciones bancarias
+ * como ingresos, retiradas y consulta de movimientos.
  */
 public class UsuarioService {
 	
@@ -25,13 +26,13 @@ public class UsuarioService {
 	private OperacionDAO operacionDao = new OperacionDAO();
 	
 	/**
-	 * Comprueba el correo y la clave con la base de datos para iniciar sesión.
-	 * Si el login es correcto, cambia el estado del usuario a autenticado y lo guarda
-	 * en la sesión activa de memoria para el resto de gestiones.
-	 * @param email Correo electrónico del usuario.
-	 * @param password Contraseña en texto plano introducida.
-	 * @return El objeto Usuario correspondiente que ha iniciado sesión.
-	 * @throws CredencialesInvalidasException Si el usuario o la clave no coinciden en la BD.
+	 * Autentica un usuario en el sistema mediante email y contraseña.
+	 * Si las credenciales son correctas, se almacena el usuario como sesión activa.
+	 *
+	 * @param email correo electrónico del usuario.
+	 * @param password contraseña del usuario.
+	 * @return objeto Usuario autenticado.
+	 * @throws CredencialesInvalidasException si las credenciales no son válidas.
 	 */
 	public Usuario autenticar(String email, String password) {
 		
@@ -46,10 +47,11 @@ public class UsuarioService {
 	}
 	
 	/**
-	 * Busca el saldo disponible actual que tiene el usuario conectado en su cuenta.
-	 * @return Los euros totales que tiene la cuenta en formato double.
-	 * @throws DatoInvalidoException Si se intenta consultar sin haber iniciado sesión antes.
-	 * @throws CuentaNoEncontradaException Si el usuario conectado no tiene ninguna cuenta a su nombre.
+	 * Obtiene el saldo actual de la cuenta del usuario autenticado.
+	 *
+	 * @return saldo disponible en la cuenta.
+	 * @throws DatoInvalidoException si no hay sesión iniciada.
+	 * @throws CuentaNoEncontradaException si el usuario no tiene cuenta asociada.
 	 */
 	public double obtenerSaldoActual() {
 		if (usuarioAutenticado == null) {
@@ -66,20 +68,20 @@ public class UsuarioService {
 	}
 	
 	/**
-	 * Devuelve el objeto del usuario que tiene la sesión iniciada en este momento.
-	 * @return El objeto Usuario autenticado actualmente en memoria.
+	 * Devuelve el usuario actualmente autenticado en el sistema.
+	 *
+	 * @return usuario en sesión o null si no hay sesión activa.
 	 */
 	public Usuario getUsuarioAutenticado() {
 		return this.usuarioAutenticado;
 	}
 	
 	/**
-	 * Procesa un ingreso de dinero en efectivo en el cajero bancario.
-	 * Valida la sesión, localiza la cuenta del cliente por su DNI, comprueba que el importe 
-	 * sea positivo, actualiza el saldo en la BD y registra la operación en el historial.
-	 * @param importe La cantidad de dinero en euros que se va a ingresar.
-	 * @throws DatoInvalidoException Si no hay sesión iniciada o el importe es menor o igual a 0 €.
-	 * @throws CuentaNoEncontradaException Si no se localiza la cuenta bancaria del cliente.
+	 * Realiza un ingreso de dinero en la cuenta del usuario autenticado.
+	 *
+	 * @param importe cantidad a ingresar.
+	 * @throws DatoInvalidoException si no hay sesión o el importe es inválido.
+	 * @throws CuentaNoEncontradaException si no existe cuenta asociada.
 	 */
 	public void ingresarDinero(double importe) {
 		
@@ -98,25 +100,32 @@ public class UsuarioService {
 		}
 		
 		double saldoActual = cuentaDao.consultarSaldo(numCuenta);
-		
 		double nuevoSaldo = saldoActual + importe;
 		
 		cuentaDao.actualizarSaldo(numCuenta, nuevoSaldo);
 		
-		Operacion ingreso = new Efectivo(importe, "Cliente", "Cajero", "COMPLETADA", null, numCuenta);
-		operacionDao.registrarOperacion(ingreso, "EFECTIVO");
+		Operacion ingreso = new Efectivo(
+			importe,
+			"Cliente",
+			"Cajero",
+			"COMPLETADA",
+			null,
+			numCuenta
+		);
+		
+		operacionDao.registrarOperacion(ingreso, TipoOperacion.EFECTIVO);
 	}
-
+	
 	/**
-	 * Procesa una retirada de dinero en efectivo desde el cajero.
-	 * Verifica la sesión, comprueba que el importe sea correcto, valida que haya saldo 
-	 * disponible suficiente y actualiza los datos además de añadir el movimiento al historial.
-	 * @param importe La cantidad de euros en efectivo que se van a sacar.
-	 * @throws DatoInvalidoException Si el usuario no está logueado o el dinero pedido es menor o igual a 0 €.
-	 * @throws CuentaNoEncontradaException Si el cliente no tiene cuentas vinculadas.
-	 * @throws SaldoInsuficienteException Si el dinero que pide el cliente supera el saldo actual de la cuenta.
+	 * Realiza una retirada de dinero de la cuenta del usuario autenticado.
+	 *
+	 * @param importe cantidad a retirar.
+	 * @throws DatoInvalidoException si no hay sesión o el importe es inválido.
+	 * @throws CuentaNoEncontradaException si no existe cuenta asociada.
+	 * @throws SaldoInsuficienteException si el saldo es insuficiente.
 	 */
 	public void retirarDinero(double importe) {
+		
 		if (usuarioAutenticado == null) {
 			throw new DatoInvalidoException("No hay ningún usuario identificado.");
 		}
@@ -134,22 +143,58 @@ public class UsuarioService {
 		double saldoActual = cuentaDao.consultarSaldo(numCuenta);
 		
 		if (saldoActual < importe) {
-			throw new SaldoInsuficienteException("Saldo insuficiente. Saldo disponible: " + saldoActual + " €");
+			throw new SaldoInsuficienteException(
+				"Saldo insuficiente. Saldo disponible: " + saldoActual + " €"
+			);
 		}
 		
 		double nuevoSaldo = saldoActual - importe;
 		cuentaDao.actualizarSaldo(numCuenta, nuevoSaldo);
 		
-		Operacion retirada = new Efectivo(importe, "Cliente", "Cajero", "COMPLETADA", numCuenta, null);
-		operacionDao.registrarOperacion(retirada, "EFECTIVO");
+		Operacion retirada = new Efectivo(
+			importe,
+			"Cliente",
+			"Cajero",
+			"COMPLETADA",
+			numCuenta,
+			null
+		);
+		
+		operacionDao.registrarOperacion(retirada, TipoOperacion.EFECTIVO);
 	}
 	
 	/**
-	 * Recupera la lista de todas las operaciones realizadas por el usuario actual.
-	 * Localiza primero el IBAN del usuario y le pide al DAO el listado de movimientos de esa cuenta.
-	 * @return Una lista de cadenas de texto (List de String) con el historial listo para imprimir.
-	 * @throws DatoInvalidoException Si no hay ningún usuario logueado en el sistema.
-	 * @throws CuentaNoEncontradaException Si no se encuentra la cuenta bancaria del usuario.
+	 * Obtiene el historial de movimientos del usuario autenticado.
+	 * Versión segura que recibe el DNI para evitar dependencias de estado inconsistente.
+	 *
+	 * @param dni DNI del usuario autenticado.
+	 * @return lista de movimientos formateados.
+	 * @throws DatoInvalidoException si el DNI es nulo o vacío.
+	 * @throws CuentaNoEncontradaException si no existe cuenta asociada al usuario.
+	 */
+	public List<String> obtenerMovimientosUsuario(String dni) {
+		
+		if (dni == null || dni.isEmpty()) {
+			throw new DatoInvalidoException("No hay ningún usuario identificado en el sistema.");
+		}
+		
+		String numCuenta = cuentaDao.buscarNumeroCuentaPorDni(dni);
+		
+		if (numCuenta == null) {
+			throw new CuentaNoEncontradaException(
+				"No se encontró ninguna cuenta bancaria vinculada a este usuario."
+			);
+		}
+		
+		return operacionDao.obtenerMovimientosPorCuenta(numCuenta);
+	}
+	
+	/**
+	 * Método de compatibilidad con versiones anteriores.
+	 * Usa el usuario en sesión para obtener su historial de movimientos.
+	 *
+	 * @return lista de movimientos del usuario autenticado.
+	 * @throws DatoInvalidoException si no hay sesión iniciada.
 	 */
 	public List<String> obtenerMovimientosUsuario() {
 		
@@ -157,12 +202,6 @@ public class UsuarioService {
 			throw new DatoInvalidoException("No hay ningún usuario identificado en el sistema.");
 		}
 		
-		String numCuenta = cuentaDao.buscarNumeroCuentaPorDni(usuarioAutenticado.getDni());
-		
-		if (numCuenta == null) {
-			throw new CuentaNoEncontradaException("No se encontró ninguna cuenta bancaria vinculada a este usuario.");
-		}
-		
-		return operacionDao.obtenerMovimientosPorCuenta(numCuenta);
+		return obtenerMovimientosUsuario(usuarioAutenticado.getDni());
 	}
 }
