@@ -1,69 +1,62 @@
 # BancaApp
-Proyecto basado en una aplicación de sistema bancario digital, el cuál incluye todos los servicios básicos de realizar **transferencias, ingresar y retirar dinero** desde la cuenta personal de cada cliente, además de la implementación de los métodos de pago básicos que debe tener una app de estas características. En este caso, se hace uso de **pago en efectivo, por tarjeta, transferencia y Bizum**. También se visualiza una diferenciación de roles entre **Clientes, Empleados y Administradores.**
 
-### Para este proyecto, hacemos uso de las siguientes tecnologías:
+Proyecto basado en una aplicación de sistema bancario digital por consola, el cual incluye todos los servicios básicos de realizar **transferencias, ingresar y retirar dinero** desde la cuenta personal de cada cliente, además de la implementación de los métodos de pago y operativas esenciales que debe tener una app de estas características. En este caso, se hace uso de **pago en efectivo, transferencia y Bizum**. 
 
-| **Tecnología** | **Tipo**          | **Versión**   |
-| -------------- | ----------------- | ------------- |
-| Java           | Backend           | 1.8           |
-| MySQL          | Base de datos     | 8.0           |
-| Pendiente      | Framework         | Pendiente     |
+El sistema cuenta con una diferenciación de roles estricta entre **Clientes, Empleados y Administradores**, y está diseñado bajo los principios de la metodología ágil **Scrum** y el patrón arquitectónico **MVC (Modelo-Vista-Controlador)**.
 
-## *Instalación del proyecto*
-Para la instalación del proyecto, será necesario cumplir con una serie de requisitos previos al mismo, los cuales serán los siguientes:
+---
 
+### Tecnologías Utilizadas
+
+| **Tecnología** | **Tipo** | **Versión / Entorno** |
+| -------------- | ----------------- | --------------------- |
+| **Java** | Backend           | JDK 17 o superior     |
+| **MySQL** | Base de datos     | 8.0                   |
+| **Trello** | Gestión Ágil      | Tablero Scrum (Sprints)|
+| **Git/GitHub** | Control de Versiones | Estrategia Gitflow (main/dev) |
+
+---
+
+## 🏗️ Arquitectura y Estructura del Proyecto
+
+El código fuente está modularizado en paquetes específicos para garantizar la separación de responsabilidades:
+
+* `Modelo`: Contiene el dominio del sistema (`Usuario`, `Cliente`, `Empleado`, `Administrador`, `Cuenta`, `Bizum`, `Ingreso`, `Retirada`). Implementación estricta de herencia y polimorfismo.
+* `Vista`: Capa de interacción con el usuario mediante menús interactivos y seguros por consola (`LoginView`, `ClienteView`, `EmpleadoView`).
+* `Controlador`: Orquestador que comunica las vistas con los servicios de negocio.
+* `Dao`: Capa de persistencia encargada de las consultas e inserciones relacionales SQL (`UsuarioDAO`, `CuentaDAO`, `OperacionDAO`, `LogAuditoriaDAO`).
+* `Logica`: Capa de servicios (`CuentaService`) encargada de validar las reglas de negocio y garantizar transacciones atómicas.
+* `Excepciones`: Sistema de excepciones personalizadas jerárquico basado en una clase raíz común (`BancaAppException`).
+
+---
+
+## 🛡️ Robustez y Control de Errores
+
+La aplicación implementa un sistema robusto de excepciones personalizadas no verificadas (*Unchecked Exceptions*). Cada error de negocio cuenta con un mensaje descriptivo y un código unificado inyectado dinámicamente para facilitar la auditoría técnica:
+
+* **`UsuarioBloqueadoException`** `[ERR-AUTH-403]`: Detiene el acceso en el login si la cuenta del usuario está inactiva en la base de datos.
+* **`DestinatarioInvalidoException`** `[ERR-OPERACION-400]`: Restringe operaciones de transferencia o Bizum hacia la misma cuenta de origen.
+* **`PersistenciaException`** `[ERR-DB-500]`: Captura anomalías de conexión relacional o restricciones de claves foráneas en MySQL.
+* **`CuentaNoEncontradaException`** `[ERR-CUENTA-404]`: Lanzada cuando un IBAN o teléfono no existe en los registros.
+* **`SaldoInsuficienteException`**, **`LimiteExcedidoException`** y **`DatoInvalidoException`**.
+
+Todas las vistas implementan la interfaz `ErrorHandler.ErrorDisplay`, lo que garantiza que los errores se capturen mediante bloques `try-catch` estratégicos y se muestren en cajas de texto limpias, erradicando los volcados de líneas rojas en la consola.
+
+---
+
+## 📋 Gestión de Auditoría Administrativa
+
+El sistema cuenta con un servicio de trazabilidad integrado para operaciones en ventanilla y gestiones de personal. Operaciones como `ALTA_USUARIO`, `BLOQUEAR_CUENTA` o `HABILITAR_CUENTA` ejecutan una inserción atómica en los históricos de auditoría mediante bloques `finally`, asegurando el registro del DNI del empleado responsable, la fecha exacta y el estado del resultado de la acción.
+
+---
+
+## 🚀 Instalación y Despliegue
+
+### Requisitos Previos
 - Poseer **Java JDK 17 o superior**.
-- Tener instalado cualquier tipo de IDE permitido, por ejemplo, **Eclipse IDE**.
+- Tener instalado un IDE compatible (ej. **Eclipse IDE**).
+- Servidor local **MySQL Server 8.0** activo.
 
-### *Clonar repositorio*
+### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/aleejandroofm/BancaApp.git
-```
-### *Importar proyecto a Eclipse*
-
-```markdown
-
-### Importar en Eclipse
-
-1. Abrir Eclipse
-2. Ir a *File > Import*
-3. Seleccionar "Existing Projects into Workspace"
-4. Buscar la carpeta del proyecto clonado
-5. Hacer clic en "Finish"
-
-### Configuración
-
-Editar el archivo `config.properties`:
-
-- URL de la base de datos
-- Usuario
-- Contraseña
-
-### Ejecutar la aplicación
-
-1. Click derecho en la clase principal
-2. Seleccionar *Run As > Java Application*
-
-```
-
-### Estados del proyecto
-
-- [X] Configuración Inicial
-- [X] Conexión a base de datos
-- [ ] Implementación de autenticación
-- [ ] Tests unitarios del código
-
-### Integrantes del equipo 
-
-| **Rol**       | **Nombre**                   | **Encargo**  |
-| ------------- | ---------------------------- | ------------ |
-| Product Owner | Alejandro Ferrándiz Martínez | **Backend**  |
-| Co-Owner      | Pablo Ariel Mathieu Ruiz     | **Frontend** |
-
-
-
-
-
-
-
-
+git clone [https://github.com/aleejandroofm/BancaApp.git](https://github.com/aleejandroofm/BancaApp.git)
