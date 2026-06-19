@@ -28,11 +28,8 @@ public class TransferenciaService {
     
     /**
      * Realiza una transferencia transaccional entre dos cuentas bancarias.
-     * <p>
      * Valida el formato del IBAN, que las cuentas sean distintas, el saldo disponible
      * y que ninguna de las dos cuentas implicadas esté bloqueada en el sistema.
-     * </p>
-     *
      * @param dniOrigen DNI del titular emisor.
      * @param cuentaDestino IBAN de la cuenta receptora.
      * @param importe Cantidad de dinero a enviar.
@@ -102,18 +99,20 @@ public class TransferenciaService {
                     throw new PersistenciaException("Fallo crítico al restaurar estado financiero.", ex);
                 }
             }
-            // 🟢 FILTRADO DE EXCEPCIONES: Si el error es de negocio, lo dejamos propagar hacia la Vista
             if (e instanceof CuentaNoEncontradaException) throw (CuentaNoEncontradaException) e;
             if (e instanceof DatoInvalidoException) throw (DatoInvalidoException) e;
             if (e instanceof CuentaInactivaException) throw (CuentaInactivaException) e;
             if (e instanceof SaldoInsuficienteException) throw (SaldoInsuficienteException) e;
             
-            // Si es un error genérico de SQL, lo envolvemos en tu PersistenciaException
             throw new PersistenciaException(e.getMessage(), e);
             
         } finally {
             if (con != null) {
-                try { con.close(); } catch (SQLException e) { /* Ignorado */ }
+                try { 
+                    con.close(); 
+                } catch (SQLException e) {
+                    
+                }
             }
         }
     }
