@@ -28,7 +28,6 @@ public class UsuarioService {
 	/**
 	 * Autentica un usuario en el sistema mediante email y contraseña.
 	 * Si las credenciales son correctas, se almacena el usuario como sesión activa.
-	 *
 	 * @param email correo electrónico del usuario.
 	 * @param password contraseña del usuario.
 	 * @return objeto Usuario autenticado.
@@ -48,7 +47,6 @@ public class UsuarioService {
 	
 	/**
 	 * Obtiene el saldo actual de la cuenta del usuario autenticado.
-	 *
 	 * @return saldo disponible en la cuenta.
 	 * @throws DatoInvalidoException si no hay sesión iniciada.
 	 * @throws CuentaNoEncontradaException si el usuario no tiene cuenta asociada.
@@ -69,7 +67,6 @@ public class UsuarioService {
 	
 	/**
 	 * Devuelve el usuario actualmente autenticado en el sistema.
-	 *
 	 * @return usuario en sesión o null si no hay sesión activa.
 	 */
 	public Usuario getUsuarioAutenticado() {
@@ -78,7 +75,6 @@ public class UsuarioService {
 	
 	/**
 	 * Realiza un ingreso de dinero en la cuenta del usuario autenticado.
-	 *
 	 * @param importe cantidad a ingresar.
 	 * @throws DatoInvalidoException si no hay sesión o el importe es inválido.
 	 * @throws CuentaNoEncontradaException si no existe cuenta asociada.
@@ -118,7 +114,6 @@ public class UsuarioService {
 	
 	/**
 	 * Realiza una retirada de dinero de la cuenta del usuario autenticado.
-	 *
 	 * @param importe cantidad a retirar.
 	 * @throws DatoInvalidoException si no hay sesión o el importe es inválido.
 	 * @throws CuentaNoEncontradaException si no existe cuenta asociada.
@@ -165,8 +160,7 @@ public class UsuarioService {
 	
 	/**
 	 * Obtiene el historial de movimientos del usuario autenticado.
-	 * Versión segura que recibe el DNI para evitar dependencias de estado inconsistente.
-	 *
+	 * Versión segura que recibe el DNI para evitar dependencias erróneas.
 	 * @param dni DNI del usuario autenticado.
 	 * @return lista de movimientos formateados.
 	 * @throws DatoInvalidoException si el DNI es nulo o vacío.
@@ -192,7 +186,6 @@ public class UsuarioService {
 	/**
 	 * Método de compatibilidad con versiones anteriores.
 	 * Usa el usuario en sesión para obtener su historial de movimientos.
-	 *
 	 * @return lista de movimientos del usuario autenticado.
 	 * @throws DatoInvalidoException si no hay sesión iniciada.
 	 */
