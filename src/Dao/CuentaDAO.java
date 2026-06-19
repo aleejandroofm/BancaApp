@@ -22,7 +22,6 @@ public class CuentaDAO  {
 
     /**
      * Actualiza el saldo de una cuenta dentro de una transacción existente.
-     *
      * @param con conexión activa a la base de datos.
      * @param numeroCuenta IBAN de la cuenta a actualizar.
      * @param nuevoSaldo nuevo saldo calculado.
@@ -45,7 +44,6 @@ public class CuentaDAO  {
 
     /**
      * Inserta una nueva cuenta en la base de datos.
-     *
      * @param cuenta objeto Cuenta a persistir.
      * @param idUsuario identificador del usuario propietario.
      * @throws PersistenciaException si ocurre un error al guardar en la base de datos.
@@ -72,7 +70,6 @@ public class CuentaDAO  {
 
     /**
      * Lista los números de cuenta asociados a un DNI.
-     *
      * @param dni DNI del titular.
      * @return lista de números de cuenta asociados.
      * @throws PersistenciaException si ocurre un error en la consulta SQL.
@@ -102,7 +99,6 @@ public class CuentaDAO  {
 
     /**
      * Busca una cuenta por su número de cuenta.
-     *
      * @param numeroCuenta IBAN de la cuenta.
      * @return objeto Cuenta encontrado.
      * @throws CuentaNoEncontradaException si no existe la cuenta.
@@ -138,7 +134,7 @@ public class CuentaDAO  {
 
     /**
      * Busca el número de cuenta (IBAN) asociado al DNI de un titular.
-     * * @param dniTitular El DNI del cliente a consultar.
+     * @param dniTitular El DNI del cliente a consultar.
      * @return El número de cuenta (IBAN) si se localiza en el sistema.
      * @throws CuentaNoEncontradaException Si el DNI suministrado no posee ninguna cuenta vinculada.
      * @throws PersistenciaException Si ocurre un fallo relacional crítico al conectar con MySQL.
@@ -167,7 +163,6 @@ public class CuentaDAO  {
 
     /**
      * Obtiene el IBAN asociado al teléfono del usuario para Bizum.
-     *
      * @param telefono teléfono del usuario.
      * @return número de cuenta asociado.
      * @throws CuentaNoEncontradaException si no hay ninguna cuenta asociada a ese terminal.
@@ -197,7 +192,6 @@ public class CuentaDAO  {
 
     /**
      * Consulta el saldo de una cuenta.
-     *
      * @param numeroCuenta IBAN de la cuenta.
      * @return saldo actual.
      * @throws CuentaNoEncontradaException si la cuenta no existe.
@@ -227,7 +221,6 @@ public class CuentaDAO  {
 
     /**
      * Actualiza el saldo de una cuenta.
-     *
      * @param numeroCuenta IBAN de la cuenta.
      * @param nuevoSaldo nuevo saldo a guardar.
      * @throws CuentaNoEncontradaException si la cuenta no existe.
@@ -284,7 +277,6 @@ public class CuentaDAO  {
 
     /**
      * Elimina una cuenta de la base de datos.
-     *
      * @param numeroCuenta IBAN de la cuenta a eliminar.
      * @throws CuentaNoEncontradaException si la cuenta no existe.
      * @throws PersistenciaException si ocurre un error en la eliminación.
