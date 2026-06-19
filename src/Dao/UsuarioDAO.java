@@ -31,7 +31,6 @@ public class UsuarioDAO {
     
     /**
      * Busca un usuario a partir de su identificador interno.
-     *
      * @param idInterno identificador único del usuario en la base de datos.
      * @return el usuario encontrado o {@code null} si no existe.
      * @throws PersistenciaException si ocurre un error durante la consulta.
@@ -106,8 +105,12 @@ public class UsuarioDAO {
         return user;
     }
     
-    /**
+   /**
      * Busca el ID más alto de la tabla de usuarios para poder generar el siguiente de forma consecutiva.
+     * Si la tabla se encuentra vacía, se devuelve un valor base por defecto para iniciar la secuencia.
+     * @return el identificador numérico más alto encontrado en la base de datos, 
+     * o 100 como valor inicial si no existen registros.
+     * @throws PersistenciaException si ocurre un error de acceso a datos o una anomalía en la consulta SQL.
      */
     public int obtenerUltimoIdInterno() throws PersistenciaException {
         String sql = "SELECT MAX(id_interno) FROM usuario";
@@ -156,7 +159,6 @@ public class UsuarioDAO {
     
     /**
      * Busca el número de cuenta asociado a un DNI.
-     *
      * @param dniTitular DNI del titular de la cuenta.
      * @return número de cuenta asociado o {@code null} si no existe.
      * @throws PersistenciaException si ocurre un error de acceso a datos.
@@ -180,10 +182,8 @@ public class UsuarioDAO {
 
     /**
      * Inserta un nuevo usuario en la base de datos.
-     *
      * @param user usuario que se desea almacenar.
-     * @return true si la operación se realizó correctamente;
-     *         false en caso contrario.
+     * @return true si la operación se realizó correctamente, false en caso contrario.
      * @throws PersistenciaException si ocurre un error durante la inserción.
      */
     public boolean guardar(Usuario user) {
@@ -237,7 +237,6 @@ public class UsuarioDAO {
     
     /**
      * Elimina un usuario de la base de datos utilizando su DNI.
-     *
      * @param dni DNI del usuario a eliminar.
      * @return true si el usuario fue eliminado correctamente; false en caso contrario.
      * @throws PersistenciaException si ocurre un error durante la eliminación.
@@ -259,7 +258,6 @@ public class UsuarioDAO {
 
     /**
      * Autentica un usuario mediante su correo electrónico y contraseña.
-     *
      * @param email correo electrónico del usuario.
      * @param password contraseña asociada al usuario.
      * @return el usuario autenticado si las credenciales son válidas, null en caso contrario.
