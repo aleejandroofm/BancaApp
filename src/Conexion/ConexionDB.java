@@ -27,7 +27,6 @@ public class ConexionDB {
         try (InputStream input = ConexionDB.class.getClassLoader().getResourceAsStream("config.properties")) {
             if (input == null) {
                 LOGGER.severe("No se pudo encontrar el archivo config.properties en src");
-                // 🛑 LANZAMOS CONFIGURACIONEXCEPTION: Bloquea el arranque si no hay archivo de configuración
                 throw new ConfiguracionException("Error de arranque: El archivo 'config.properties' no se encuentra en la ruta del proyecto.");
             } else {
                 props.load(input);
@@ -56,7 +55,6 @@ public class ConexionDB {
 
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error al conectar con la base de datos", e);
-            // 🟢 Mantenemos tu PersistenciaException pero adaptada a tu constructor con código de error
             throw new PersistenciaException("No se pudo establecer conexión con el servidor del banco.", e);        
         }
     }
